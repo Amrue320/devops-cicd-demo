@@ -66,6 +66,20 @@ pipeline {
             }
         }
 
+        stage('Load Image into Kubernetes') {
+            steps {
+                echo '========================================'
+                echo 'LOAD DOCKER IMAGE INTO MINIKUBE'
+                echo '========================================'
+
+                bat """
+                    minikube image load %IMAGE_NAME%:%IMAGE_TAG%
+                """
+
+                echo "Image loaded into Kubernetes: ${IMAGE_NAME}:${IMAGE_TAG}"
+            }
+        }
+
         stage('Kubernetes Connection Test') {
             steps {
                 echo '========================================'
@@ -142,7 +156,7 @@ pipeline {
 
             echo "Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
 
-            echo 'Kubernetes deployment completed successfully.'
+            echo 'Kubernetes rolling deployment completed successfully.'
         }
 
         failure {
