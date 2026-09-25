@@ -1,55 +1,99 @@
+```groovy
 pipeline {
+
     agent any
 
     environment {
-        APP_NAME = "devops-cicd-app"
+        APP_NAME   = "devops-cicd-app"
         IMAGE_NAME = "devops-cicd-app"
-        IMAGE_TAG = "v${BUILD_NUMBER}"
+        IMAGE_TAG  = "v${BUILD_NUMBER}"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Checking out source code from GitHub...'
+                echo '========================================'
+                echo 'CHECKOUT SOURCE CODE'
+                echo '========================================'
+
                 checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Installing application dependencies...'
+                echo '========================================'
+                echo 'BUILD APPLICATION'
+                echo '========================================'
+
                 bat 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running application tests...'
+                echo '========================================'
+                echo 'TEST APPLICATION'
+                echo '========================================'
+
                 bat 'npm test'
             }
         }
 
         stage('Docker Build') {
             steps {
-                echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                echo '========================================'
+                echo 'BUILD DOCKER IMAGE'
+                echo '========================================'
+
                 bat """
                     docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
                 """
+
+                echo "Docker image created: ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
         stage('Docker Image Verification') {
             steps {
+                echo '========================================'
+                echo 'DOCKER IMAGE VERIFICATION'
+                echo '========================================'
+
                 bat 'docker images %IMAGE_NAME%'
             }
         }
 
-        stage('Deploy') {
+        stage('Kubernetes Connection Test') {
             steps {
-                bat """
-                    kubectl apply -f deployment.yaml
-                    kubectl apply -f service.yaml
-                """
+                echo '========================================'
+                echo 'KUBERNETES CONNECTION TEST'
+                echo '========================================'
+
+                bat 'kubectl config current-context'
+
+                bat 'kubectl get nodes'
+            }
+        }
+
+        stage('Deploy Kubernetes Resources') {
+            steps {
+                echo '========================================'
+                echo 'DEPLOY KUBERNETES RESOURCES'
+                echo '========================================'
+
+                bat 'kubectl apply -f deployment.yaml'
+
+                bat 'kubectl apply -f service.yaml'
+            }
+        }
+
+        stage('Update Application Image') {
+            steps {
+                echo '========================================'
+                echo 'UPDATE APPLICATION IMAGE'
+                echo '========================================'
 
                 bat """
                     kubectl set image deployment/%APP_NAME% %APP_NAME%=%IMAGE_NAME%:%IMAGE_TAG%
@@ -59,34 +103,60 @@ pipeline {
 
         stage('Rolling Deployment') {
             steps {
+                echo '========================================'
+                echo 'ROLLING DEPLOYMENT'
+                echo '========================================'
+
                 bat """
                     kubectl rollout status deployment/%APP_NAME% --timeout=180s
                 """
             }
         }
 
-        stage('Verify') {
+        stage('Verify Deployment') {
             steps {
+                echo '========================================'
+                echo 'VERIFY DEPLOYMENT'
+                echo '========================================'
+
                 bat 'kubectl get deployment'
+
                 bat 'kubectl get pods'
+
                 bat 'kubectl get service'
+
+                bat 'kubectl rollout status deployment/%APP_NAME%'
             }
         }
     }
 
     post {
+
         success {
+            echo '========================================'
             echo 'CI/CD PIPELINE SUCCESSFUL'
-            echo 'Application deployed successfully.'
+            echo '========================================'
+
+            echo "Application: ${APP_NAME}"
+
+            echo "Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+
+            echo 'Kubernetes deployment completed successfully.'
         }
 
         failure {
+            echo '========================================'
             echo 'CI/CD PIPELINE FAILED'
-            echo 'Check Jenkins console output.'
+            echo '========================================'
+
+            echo 'Check the Jenkins console output.'
         }
 
         always {
-            echo 'Pipeline execution completed.'
+            echo '========================================'
+            echo 'PIPELINE EXECUTION COMPLETED'
+            echo '========================================'
         }
     }
 }
+```
