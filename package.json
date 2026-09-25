@@ -1,0 +1,13 @@
+{
+  "name": "devops-cicd-demo",
+  "version": "1.0.0",
+  "description": "CI/CD demonstration using Jenkins, Docker and Kubernetes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
