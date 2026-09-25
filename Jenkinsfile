@@ -1,4 +1,3 @@
-```groovy
 pipeline {
 
     agent any
@@ -7,6 +6,8 @@ pipeline {
         APP_NAME   = "devops-cicd-app"
         IMAGE_NAME = "devops-cicd-app"
         IMAGE_TAG  = "v${BUILD_NUMBER}"
+
+        KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
     }
 
     stages {
@@ -159,4 +160,3 @@ pipeline {
         }
     }
 }
-```
